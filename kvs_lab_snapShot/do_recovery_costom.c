@@ -3,25 +3,7 @@
 #include <unistd.h>
 #include <string.h>
 
-#define MAX_LINE_LENGTH 4500
-
-
-void read_line_until_newline(int file_descriptor, char* buffer, int max_length) {
-    ssize_t total_read = 0;
-
-    while (total_read < max_length - 1) {
-        ssize_t bytes_read = read(file_descriptor, buffer + total_read, 1);
-        printf(bytes_read);
-
-        if (bytes_read <= 0 || buffer[total_read] == '\n') {
-            break;  // 파일의 끝에 도달하거나 줄바꿈 문자를 만남
-        }
-        total_read += bytes_read;
-    }
-
-    buffer[total_read] = '\0';  // 널 문자 추가
-}
-
+#define MAX_LINE_LENGTH 4400
 
 int do_recovery_costom(kvs_t* kvs){
 
@@ -34,26 +16,49 @@ int do_recovery_costom(kvs_t* kvs){
 
     char key[32];
     char content[MAX_LINE_LENGTH];
-    char buffer[MAX_LINE_LENGTH];
-    while (1) {
-        // 파일에서 줄바꿈 문자를 만날 때까지 읽어옴
-        read_line_until_newline(Recovery_file, buffer, 1);
+    char current_char;
 
-        // 읽은 데이터 처리
-        printf(buffer);
+
+    // 파일 읽기
+    while (1) {
+        char current_char;
+        int bytes_read = read(Recovery_file, &current_char, 1);
 
         // 파일의 끝에 도달하면 종료
-        if (buffer[0] == '\0') {
+        if (bytes_read == 0) {
             break;
         }
 
+        // 개행 문자를 만날 때까지 key 읽기
+        int key_index = 0;
+        while (current_char != ' ' && current_char != '\n') {
+            key[key_index++] = current_char;
+            
+            bytes_read = read(Recovery_file, &current_char, 1);
 
-        // printf("%s %s\n", key, content);
-        // printf("kvs items : %d\n" , kvs->items);
-        // set 함수 호출ax 
-        // set(kvs, key, content);
+        }
+        key[key_index] = '\0'; // 문자열 마지막에 널 문자 추가
+
+        // 개행 문자를 만날 때까지 content 읽기
+        int content_index = 0;
+        while (current_char != '\n') {
+            content[content_index++] = current_char;
+            
+            bytes_read = read(Recovery_file, &current_char, 1);
+
+        }
+        content[content_index] = '\0'; // 문자열 마지막에 널 문자 추가
+
+        set(kvs, key, content);
     }
+    
+
+
 
     close(Recovery_file);
     return 0;
 }
+
+
+
+

@@ -5,15 +5,17 @@
 void print_kvs(kvs_t* kvs) {
     node_t *curr = kvs->db;
 
-	printf("kvs 출력 테스트");
+	printf("kvs 출력 테스트\n");
     while (curr != NULL) { 
-        printf("Key: %s, Value: %s\n", curr->key, curr->value);
+        printf("Key: %s Value: %s \n", curr->key , curr->value);
         curr = curr->next;
     }
 }
 
 int main()
 {
+	clock_t startTime , endTime;
+
 	// kvs Open() ( DB 구조체 , 열기 )
 	kvs_t* kvs = open_kvs();
 	if(!kvs) {
@@ -21,59 +23,63 @@ int main()
 		return -1;
 	}
 
-	// FILE* queryFile = fopen("./tt", "r");
-	// if (!queryFile) {
-	// 	printf("Failed to open 'query.dat'");
-	// 	return -1;
-	// }
 
-	// FILE* answerFile = fopen("./answer.dat", "w");
-	// if (!answerFile) {
-	// 	printf("Failed to open 'answer.dat'");
-	// 	return -1;
-	// }
+	FILE* queryFile = fopen("./tt", "r");
+	if (!queryFile) {
+		printf("Failed to open 'query.dat'");
+		return -1;
+	}
 
-	// char Line[MAX_LINE_LENGTH]; 
-	// char* result = NULL;
-	// char operation[4];
-	// char key[32];
-	// char* parser = NULL;
-	// char content[MAX_LINE_LENGTH];
-	// // 파일에서 한 줄씩 읽어오고 저장하기 ( file -> )
-    // while ( !feof(queryFile) ) {
+	FILE* answerFile = fopen("./answer.dat", "w");
+	if (!answerFile) {
+		printf("Failed to open 'answer.dat'");
+		return -1;
+	}
 
-	// 	// file에서 가져옴 
-	// 	fscanf(queryFile, "%s\n", Line);
+	char Line[MAX_LINE_LENGTH]; 
+	char* result = NULL;
+	char operation[4];
+	char key[32];
+	char* parser = NULL;
+	char content[MAX_LINE_LENGTH];
+	// 파일에서 한 줄씩 읽어오고 저장하기 ( file -> )
+	while ( !feof(queryFile) ) {
+
+		// file에서 가져옴 
+		fscanf(queryFile, "%s\n", Line);
 		
-	// 	// "," 단위로 파싱(파싱파트)
-	// 	parser = strtok(Line, ",");
-	// 	strcpy(operation, parser);
-	// 	parser = strtok(NULL, ",");
-	// 	strcpy(key, parser);
-	// 	parser = strtok(NULL, ",");
-	// 	strcpy(content, parser);
+		// "," 단위로 파싱(파싱파트)
+		parser = strtok(Line, ",");
+		strcpy(operation, parser);
+		parser = strtok(NULL, ",");
+		strcpy(key, parser);
+		parser = strtok(NULL, ",");
+		strcpy(content, parser);
 
 
-	// 	if ( strcmp(operation , "set") == 0 ){
-	// 		set(kvs , key , content);
-	// 	}
-	// 	else if ( strcmp(operation , "get") == 0 ){
-	// 		result = get(kvs , key);
-	// 		fprintf(answerFile, "%s\n" , result);
-	// 		printf("get\n");		
-    // 		free(result);
-	// 		result = NULL;
-	// 	}
-	// }
-	// // do_snapshot_basic(kvs);
-	// do_snapshot_costom(kvs);
+		if ( strcmp(operation , "set") == 0 ){
+			set(kvs , key , content);
+		}
+		else if ( strcmp(operation , "get") == 0 ){
+			result = get(kvs , key);
+			fprintf(answerFile, "%s\n" , result);
+			printf("get\n");		
+			free(result);
+			result = NULL;
+		}
+	}
+	
+	startTime = clock();
+	// do_snapshot_basic(kvs);
+	do_snapshot_costom(kvs);
+	endTime = clock();
 
-	// fclose(answerFile);
-	// fclose(queryFile);
+	fclose(answerFile);
+	fclose(queryFile);
 	// 테스트용 kvs 출력함수 호출 
+	
+	printf("SnapShot Costom 버전 시간 : %lf sec\n" , (double)(endTime - startTime)/CLOCKS_PER_SEC * 10 );
 	print_kvs(kvs);
-
-
 
 	close_kvs(kvs);
 	

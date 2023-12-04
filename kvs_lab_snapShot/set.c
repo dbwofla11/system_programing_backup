@@ -7,7 +7,7 @@ int set(kvs_t* kvs, const char* key, const char* value)
         fprintf(stderr, "Invalid Input\n"); // 오류가 나면 파일에 적어짐
         return -1;
     }
-	printf("set 호출 \n");
+	//printf("set 호출 \n");
 
 
 	/* do program here */
